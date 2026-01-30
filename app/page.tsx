@@ -11,21 +11,40 @@ import Select from '@/components/Inputs/Option';
 import Option from '@/components/Inputs/Option';
 import TextField from '@/components/TextField';
 import { Span } from 'next/dist/trace';
+import { useState } from 'react';
 
 export default function Page() {
+  const [wordNow, setWordNow] = useState(0);
+  const letters = 'qwertyuiopasdfghjklzxcvbnm,. ';
+  const [typedLetters, setTypedLetters] = useState<string>();
+  console.log(typedLetters);
   const text =
     'Hello, my name is Peter and I live in Warsaw. I like programming and video games.';
 
   const writtenText = text.split('');
-  const wordtest = [
+  const wordtestx = [
     { id: 0, typed: true, correct: true, letter: 'L' },
     { id: 1, typed: true, correct: false, letter: 'o' },
     { id: 2, typed: false, correct: true, letter: 'L' },
   ];
 
+  let id = 0;
+
+  const wordTest = text.split('').map((letter) => {
+    return { id: id++, typed: false, correct: false, letter: letter };
+  });
+
   //EVERY TEXT CHANGED INTO ARRAY WITH OBJECT WITH EACH LETTER ABOVE, WE SHOW THE TEXT AND HAVE FUNCTION THAT CHECKS IF OUR TYPED OBJECT WITH ID SAME AND THE SAME LETTER IS IN THE SAME POSITION MAYBE?
 
-  console.log(writtenText);
+  function pressDown(e) {
+    if (e.key === 'Backspace') {
+      setWordNow((pS) => (pS === 0 ? pS : pS - 1));
+    }
+
+    if (letters.split('').includes(e.key)) {
+      setWordNow((pS) => pS + 1);
+    }
+  }
 
   return (
     <main className="flex flex-col flex-1">
@@ -57,17 +76,36 @@ export default function Page() {
           </InputSelect>
         </OptionContainer>
       </TopContainer>
-      <div>
-        {wordtest.map((letter) => (
+      {/* 
+      <TextField>
+        {wordTest.map((letter) => (
           <span
             key={letter.id}
-            className={`${letter.typed ? (letter.correct ? 'text-my-green-500' : 'text-my-red-500') : 'text-my-neutral-400'}`}
+            className={`${letter.typed ? (letter.correct ? 'text-my-green-500' : 'text-my-red-500') : 'text-my-neutral-400'} ${wordNow >= letter.id && !letter.typed ? 'bg-my-neutral-400/30' : ''} text-2xl`}
           >
             {letter.letter}
           </span>
         ))}
+      </TextField> */}
+      <div className="flex-1 relative">
+        <div className="absolute left-6 right-6 top-4">
+          {' '}
+          {wordTest.map((letter) => (
+            <span
+              key={letter.id}
+              className={`${letter.typed ? (letter.correct ? 'text-my-green-500' : 'text-my-red-500') : 'text-my-neutral-400'} ${wordNow >= letter.id && !letter.typed ? 'bg-my-neutral-400/30' : ''} text-2xl`}
+            >
+              {letter.letter}
+            </span>
+          ))}
+        </div>
+        <input
+          className="w-full text-black border-white  bg-white border"
+          onChange={(e) => {
+            setTypedLetters((pS) => e.target.value);
+          }}
+        ></input>
       </div>
-      <TextField>{text}</TextField>
     </main>
   );
 }
