@@ -10,9 +10,10 @@ import InputSelect from '@/components/Inputs/InputSelect';
 import Select from '@/components/Inputs/Option';
 import Option from '@/components/Inputs/Option';
 import TextField from '@/components/TextField';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Page() {
+  const [game, setGame] = useState(false);
   const [letterNumber, setLetterNumber] = useState(0);
   let id = 0;
   const text =
@@ -35,7 +36,6 @@ export default function Page() {
       textSplit.filter((letter) => letter.firstTyped).length) *
     100
   ).toFixed(0);
-  console.log(accu === 'NaN' ? 'yes' : 'no');
 
   function handleKeys(e) {
     if (e.key === 'Shift') {
@@ -90,7 +90,40 @@ export default function Page() {
     }
   }
 
-  //EVERY TEXT CHANGED INTO ARRAY WITH OBJECT WITH EACH LETTER ABOVE, WE SHOW THE TEXT AND HAVE FUNCTION THAT CHECKS IF OUR TYPED OBJECT WITH ID SAME AND THE SAME LETTER IS IN THE SAME POSITION MAYBE?
+  const textRef = useRef(null);
+
+  useEffect(() => {
+    const startTime = Date.now() / 1000;
+    const gameTime = 60;
+
+    if (!game) return;
+
+    const id = setInterval(() => {
+      const currentTime = Date.now();
+      const timePassed = Math.floor(currentTime / 1000 - startTime).toFixed(0);
+      setTimePass(Number(timePassed));
+
+      const timer = gameTime - Number(timePassed);
+      if (timer === 0) {
+        setGame(false);
+        setTimer(0);
+        console.log('END!');
+        return;
+      }
+
+      setTimer(timer);
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [game]);
+
+  const [timer, setTimer] = useState(60);
+
+  // WPM = (characters_typed / 5) * (60 / time_in_seconds)
+
+  const [timePass, setTimePass] = useState(1);
+  const words = textSplit.filter((letter) => letter.firstTyped).length;
+  const WPM = ((words / 5) * (60 / timePass)).toFixed(0);
 
   return (
     <main className="flex flex-col flex-1">
@@ -98,7 +131,7 @@ export default function Page() {
         <Scores>
           <ScoreBox>
             <ScoreTitle txtFormat="uppercase">wpm:</ScoreTitle>
-            <ScoreNumber>40</ScoreNumber>
+            <ScoreNumber>{WPM}</ScoreNumber>
           </ScoreBox>
           <ScoreBox borders={true}>
             <ScoreTitle>Accuracy:</ScoreTitle>
@@ -106,7 +139,7 @@ export default function Page() {
           </ScoreBox>
           <ScoreBox>
             <ScoreTitle>Time:</ScoreTitle>
-            <ScoreNumber>0:46</ScoreNumber>
+            <ScoreNumber>0:{timer < 10 ? `0${timer}` : timer}</ScoreNumber>
           </ScoreBox>
         </Scores>
         <OptionContainer>
@@ -122,6 +155,15 @@ export default function Page() {
           </InputSelect>
         </OptionContainer>
       </TopContainer>
+      <button
+        className="px-6 py-1 bg-red-500"
+        onClick={() => {
+          textRef.current.focus();
+          setGame((pS) => !pS);
+        }}
+      >
+        CLICK
+      </button>
 
       <div className="flex-1 relative flex pt-6">
         <div className="absolute px-6">
@@ -138,6 +180,7 @@ export default function Page() {
           className="w-full z-20 text-transparent"
           spellCheck="false"
           autoCapitalize="off"
+          ref={textRef}
           onKeyDown={(e) => {
             handleKeys(e);
           }}
@@ -147,27 +190,5 @@ export default function Page() {
   );
 }
 
-{
-  /*       {wordTest.map((letter) => (
-            <span
-              key={letter.id}
-              className={`${letter.typed ? (letter.correct ? 'text-my-green-500' : 'text-my-red-500') : 'text-my-neutral-400'} ${wordNow >= letter.id && !letter.typed ? 'bg-my-neutral-400/30' : ''} text-2xl`}
-            >
-              {letter.letter}
-            </span>
-          ))} */
-}
-
-{
-  /* 
-      <TextField>
-        {wordTest.map((letter) => (
-          <span
-            key={letter.id}
-            className={`${letter.typed ? (letter.correct ? 'text-my-green-500' : 'text-my-red-500') : 'text-my-neutral-400'} ${wordNow >= letter.id && !letter.typed ? 'bg-my-neutral-400/30' : ''} text-2xl`}
-          >
-            {letter.letter}
-          </span>
-        ))}
-      </TextField> */
-}
+// TO DO:
+// ACCU SHOULD STILL GO DOWN IF WE TYPE THE WRONG LETTER MULTIPLE TIMES
