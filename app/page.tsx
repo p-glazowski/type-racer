@@ -7,12 +7,11 @@ import ScoreNumber from '@/components/SingleScoreBox/ScoreNumber';
 import ScoreTitle from '@/components/SingleScoreBox/ScoreTitle';
 import OptionContainer from '@/components/OptionContainer';
 import InputSelect from '@/components/Inputs/InputSelect';
-import Select from '@/components/Inputs/Option';
 import Option from '@/components/Inputs/Option';
-import TextField from '@/components/TextField';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Page() {
+  const [started, setStarted] = useState(false);
   const [game, setGame] = useState(false);
   const [letterNumber, setLetterNumber] = useState(0);
   let id = 0;
@@ -41,6 +40,8 @@ export default function Page() {
     if (e.key === 'Shift') {
       return;
     }
+
+    setGame(true);
 
     if (letterNumber > 0 && textSplit[letterNumber - 1].correct === false) {
       if (e.key === 'Backspace') {
@@ -125,8 +126,14 @@ export default function Page() {
   const words = textSplit.filter((letter) => letter.firstTyped).length;
   const WPM = ((words / 5) * (60 / timePass)).toFixed(0);
 
+  useEffect(() => {
+    if (started && textRef.current) {
+      textRef.current.focus();
+    }
+  }, [started]);
+
   return (
-    <main className="flex flex-col flex-1">
+    <main className="flex flex-col flex-1 max-w-300 w-full mx-auto">
       <TopContainer>
         <Scores>
           <ScoreBox>
@@ -135,11 +142,29 @@ export default function Page() {
           </ScoreBox>
           <ScoreBox borders={true}>
             <ScoreTitle>Accuracy:</ScoreTitle>
-            <ScoreNumber>{accu === 'NaN' ? '100' : accu}%</ScoreNumber>
+            <ScoreNumber>
+              {accu === 'NaN' ? (
+                '100%'
+              ) : (
+                <span
+                  className={`${Number(accu) < 90 ? 'text-yellow-500' : 'text-green-500'}`}
+                >
+                  {accu}%
+                </span>
+              )}
+            </ScoreNumber>
           </ScoreBox>
           <ScoreBox>
             <ScoreTitle>Time:</ScoreTitle>
-            <ScoreNumber>0:{timer < 10 ? `0${timer}` : timer}</ScoreNumber>
+            <ScoreNumber>
+              {timer < 10 ? (
+                <span className="text-red-500">0:0{timer}</span>
+              ) : (
+                <span className={`${timer < 40 ? 'text-yellow-500' : ''}`}>
+                  0:{timer}
+                </span>
+              )}
+            </ScoreNumber>
           </ScoreBox>
         </Scores>
         <OptionContainer>
@@ -149,13 +174,12 @@ export default function Page() {
             <Option value="hard">Hard</Option>
           </InputSelect>
           <InputSelect id="time">
-            <Option value="timed">Timed(60s)</Option>
-            <Option value="best">Best</Option>
+            <Option value="timed">Timed</Option>
             <Option value="practice">Practice</Option>
           </InputSelect>
         </OptionContainer>
       </TopContainer>
-      <button
+      {/*       <button
         className="px-6 py-1 bg-red-500"
         onClick={() => {
           textRef.current.focus();
@@ -163,10 +187,37 @@ export default function Page() {
         }}
       >
         CLICK
-      </button>
+      </button> */}
 
       <div className="flex-1 relative flex pt-6">
-        <div className="absolute px-6">
+        <div
+          className="absolute px-6 bg-gray-500/5 p-8 rounded-md outline-0"
+          tabIndex={1}
+          ref={textRef}
+          onKeyDown={(e) => {
+            if (started) {
+              handleKeys(e);
+            }
+          }}
+        >
+          {started && !game && (
+            <div className="absolute bg-my-blue-400 rounded-md px-2 -left-50 py-1 top-0">
+              Start typing to start
+            </div>
+          )}
+          {!started && (
+            <>
+              <div className=" absolute inset-0 z-10 backdrop-blur-xs rounded-md"></div>
+              <button
+                className="bg-my-blue-600 z-20 absolute top-1/2 left-1/2 -translate-1/2 px-6 py-2 shadow-[0px_0px_20px_0px] shadow-my-blue-600 font-bold text-2xl rounded-md cursor-pointer hover:shadow-[0px_0px_40px_0px]"
+                onClick={() => {
+                  setStarted(true);
+                }}
+              >
+                Start test
+              </button>
+            </>
+          )}
           {textSplit.map((letter) => (
             <span
               key={letter.id}
@@ -176,16 +227,15 @@ export default function Page() {
             </span>
           ))}
         </div>
-        <textarea
-          className="w-full z-20 text-transparent"
-          spellCheck="false"
-          autoCapitalize="off"
-          ref={textRef}
-          onKeyDown={(e) => {
-            handleKeys(e);
-          }}
-        ></textarea>
       </div>
+      <button
+        className="bg-blue-500 px-6 py-1 mx-auto"
+        onClick={() => {
+          setGame(false);
+        }}
+      >
+        stop game
+      </button>
     </main>
   );
 }

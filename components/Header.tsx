@@ -5,7 +5,7 @@ export default function Header() {
     <header className="p-4 flex flex-row justify-between items-center">
       <div>
         {/* MOBILE LOGO */}
-        <div className="w-8">
+        <div className="w-8 md:hidden">
           <Image
             width={32}
             height={32}
@@ -15,7 +15,7 @@ export default function Header() {
           />
         </div>
         {/* PC LOGO */}
-        <div className="hidden">
+        <div className="hidden md:block">
           <Image
             width={267}
             height={40}

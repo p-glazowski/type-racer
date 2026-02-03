@@ -7,7 +7,7 @@ interface Props {
 
 export default function InputSelect({ children, id }: Props) {
   return (
-    <div className="border rounded-md flex-1 flex justify-center py-0.5 border-my-neutral-400/60">
+    <div className="border rounded-md flex-1 flex justify-center py-0.5 border-my-neutral-400/60 md:flex-0 px-2">
       <label htmlFor={id}>
         <select name={id} id={id}>
           {children}
