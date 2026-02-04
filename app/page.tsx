@@ -9,16 +9,18 @@ import OptionContainer from '@/components/OptionContainer';
 import InputSelect from '@/components/Inputs/InputSelect';
 import Option from '@/components/Inputs/Option';
 import { useEffect, useRef, useState } from 'react';
+import { texts } from '@/data/texts';
 
 export default function Page() {
+  const importedTexts = texts;
+  const [topScore, setTopScore] = useState(0);
   const [started, setStarted] = useState(false);
   const [game, setGame] = useState(false);
+  const [timer, setTimer] = useState(60);
   const [letterNumber, setLetterNumber] = useState(0);
   let id = 0;
-  const text =
-    'Manhattan is the most densely populated and geographically smallest of the five boroughs of New York City. Coextensive with New York County, Manhattan is the smallest county by area in the U.S. state of New York, and one of the smallest in the United States. Located almost entirely on Manhattan Island near the southern tip of the state, Manhattan is centrally located in the Northeast megalopolis and represents the urban core of the New York metropolitan area.';
   const [textSplit, setTextSplit] = useState(
-    text.split('').map((letter) => {
+    importedTexts[1].text.split('').map((letter) => {
       return {
         id: id++,
         typed: false,
@@ -29,6 +31,9 @@ export default function Page() {
       };
     }),
   );
+
+  const gameOver =
+    (started && textSplit.every((letter) => letter.typed)) || timer === 0;
 
   const accu = (
     (textSplit.filter((letter) => !letter.firstMistake && letter.typed).length /
@@ -70,6 +75,7 @@ export default function Page() {
             : letter,
         ),
       );
+
       setLetterNumber((pS) => pS + 1);
     }
 
@@ -87,6 +93,7 @@ export default function Page() {
             : letter,
         ),
       );
+
       setLetterNumber((pS) => pS + 1);
     }
   }
@@ -99,26 +106,23 @@ export default function Page() {
 
     if (!game) return;
 
+    if (gameOver) {
+      setGame(false);
+      return;
+    }
+
     const id = setInterval(() => {
       const currentTime = Date.now();
       const timePassed = Math.floor(currentTime / 1000 - startTime).toFixed(0);
       setTimePass(Number(timePassed));
 
       const timer = gameTime - Number(timePassed);
-      if (timer === 0) {
-        setGame(false);
-        setTimer(0);
-        console.log('END!');
-        return;
-      }
 
       setTimer(timer);
     }, 1000);
 
     return () => clearInterval(id);
-  }, [game]);
-
-  const [timer, setTimer] = useState(60);
+  }, [game, gameOver]);
 
   // WPM = (characters_typed / 5) * (60 / time_in_seconds)
 
@@ -133,109 +137,137 @@ export default function Page() {
   }, [started]);
 
   return (
-    <main className="flex flex-col flex-1 max-w-300 w-full mx-auto">
-      <TopContainer>
-        <Scores>
-          <ScoreBox>
-            <ScoreTitle txtFormat="uppercase">wpm:</ScoreTitle>
-            <ScoreNumber>{WPM}</ScoreNumber>
-          </ScoreBox>
-          <ScoreBox borders={true}>
-            <ScoreTitle>Accuracy:</ScoreTitle>
-            <ScoreNumber>
-              {accu === 'NaN' ? (
-                '100%'
-              ) : (
-                <span
-                  className={`${Number(accu) < 90 ? 'text-yellow-500' : 'text-green-500'}`}
-                >
-                  {accu}%
-                </span>
-              )}
-            </ScoreNumber>
-          </ScoreBox>
-          <ScoreBox>
-            <ScoreTitle>Time:</ScoreTitle>
-            <ScoreNumber>
-              {timer < 10 ? (
-                <span className="text-red-500">0:0{timer}</span>
-              ) : (
-                <span className={`${timer < 40 ? 'text-yellow-500' : ''}`}>
-                  0:{timer}
-                </span>
-              )}
-            </ScoreNumber>
-          </ScoreBox>
-        </Scores>
-        <OptionContainer>
-          <InputSelect id="level">
-            <Option value="easy">Easy</Option>
-            <Option value="med">Medium</Option>
-            <Option value="hard">Hard</Option>
-          </InputSelect>
-          <InputSelect id="time">
-            <Option value="timed">Timed</Option>
-            <Option value="practice">Practice</Option>
-          </InputSelect>
-        </OptionContainer>
-      </TopContainer>
-      {/*       <button
-        className="px-6 py-1 bg-red-500"
-        onClick={() => {
-          textRef.current.focus();
-          setGame((pS) => !pS);
-        }}
-      >
-        CLICK
-      </button> */}
-
-      <div className="flex-1 relative flex pt-6">
-        <div
-          className="absolute px-6 bg-gray-500/5 p-8 rounded-md outline-0"
-          tabIndex={1}
-          ref={textRef}
-          onKeyDown={(e) => {
-            if (started) {
-              handleKeys(e);
-            }
-          }}
-        >
-          {started && !game && (
-            <div className="absolute bg-my-blue-400 rounded-md px-2 -left-50 py-1 top-0">
-              Start typing to start
+    <main className="flex-1 max-w-300 w-full mx-auto flex flex-col gap-4 px-10 relative">
+      {gameOver && (
+        <div className="px-6 mt-10 bg-my-neutral-800 py-10 rounded-md flex flex-col gap-4 z-40">
+          <p className="text-center text-my-green-500">
+            Congratz, you passed the test!
+          </p>
+          <h2 className="text-center text-2xl font-bold">Your results</h2>
+          <div className="grid grid-cols-3 text-center mt-10">
+            <div className="flex flex-col gap-1">
+              <h3 className="">WPM:</h3>
+              <p className="font-bold">{WPM}</p>
             </div>
-          )}
-          {!started && (
-            <>
-              <div className=" absolute inset-0 z-10 backdrop-blur-xs rounded-md"></div>
-              <button
-                className="bg-my-blue-600 z-20 absolute top-1/2 left-1/2 -translate-1/2 px-6 py-2 shadow-[0px_0px_20px_0px] shadow-my-blue-600 font-bold text-2xl rounded-md cursor-pointer hover:shadow-[0px_0px_40px_0px]"
-                onClick={() => {
-                  setStarted(true);
-                }}
-              >
-                Start test
-              </button>
-            </>
-          )}
-          {textSplit.map((letter) => (
-            <span
-              key={letter.id}
-              className={`text-2xl ${letter.typed ? (letter.correct ? 'text-my-green-500' : 'text-my-red-500 bg-my-red-500/50') : 'text-my-neutral-400'} ${letter.id === letterNumber ? 'bg-my-neutral-400/40' : ''} ${letter.letter === ' ' ? 'px-1 mx-1' : ''}`}
-            >
-              {letter.letter}
-            </span>
-          ))}
+            <div className="flex flex-col gap-1">
+              <h3 className="">Accuracy:</h3>
+              <p className="font-bold">{accu}%</p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <h3 className="">Time left:</h3>
+              <p className="font-bold">
+                {timer < 10 ? `0:0${timer}` : `0:${timer}`}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
-      <button
-        className="bg-blue-500 px-6 py-1 mx-auto"
-        onClick={() => {
-          setGame(false);
-        }}
-      >
-        stop game
-      </button>
+      )}
+      {!gameOver && (
+        <>
+          {' '}
+          <TopContainer>
+            <Scores>
+              <ScoreBox>
+                <ScoreTitle txtFormat="uppercase">wpm:</ScoreTitle>
+                <ScoreNumber>{WPM}</ScoreNumber>
+              </ScoreBox>
+              <ScoreBox borders={true}>
+                <ScoreTitle>Accuracy:</ScoreTitle>
+                <ScoreNumber>
+                  {accu === 'NaN' ? (
+                    '100%'
+                  ) : (
+                    <span
+                      className={`${Number(accu) < 90 ? 'text-yellow-500' : 'text-green-500'}`}
+                    >
+                      {accu}%
+                    </span>
+                  )}
+                </ScoreNumber>
+              </ScoreBox>
+              <ScoreBox>
+                <ScoreTitle>Time:</ScoreTitle>
+                <ScoreNumber>
+                  {timer < 10 ? (
+                    <span className="text-red-500">0:0{timer}</span>
+                  ) : (
+                    <span className={`${timer < 40 ? 'text-yellow-500' : ''}`}>
+                      0:{timer}
+                    </span>
+                  )}
+                </ScoreNumber>
+              </ScoreBox>
+            </Scores>
+            <OptionContainer>
+              <InputSelect id="level">
+                <Option value="easy">Easy</Option>
+                <Option value="med">Medium</Option>
+                <Option value="hard">Hard</Option>
+              </InputSelect>
+              <InputSelect id="time">
+                <Option value="timed">Timed</Option>
+                <Option value="practice">Practice</Option>
+              </InputSelect>
+            </OptionContainer>
+          </TopContainer>
+          <div className="border-b border-my-neutral-500/50 mb-2"></div>
+          <div
+            className="relative px-6 bg-gray-500/5 py-10 rounded-md outline-0"
+            tabIndex={1}
+            ref={textRef}
+            onKeyDown={(e) => {
+              if (gameOver) return;
+              if (started) {
+                handleKeys(e);
+              }
+            }}
+          >
+            {!started && (
+              <>
+                <div className=" absolute inset-0 z-10 backdrop-blur-xs rounded-md"></div>
+                <button
+                  className="bg-my-blue-600 z-20 absolute top-1/2 left-1/2 -translate-1/2 px-6 py-2 shadow-[0px_0px_20px_0px] shadow-my-blue-600 font-bold text-2xl rounded-md cursor-pointer hover:shadow-[0px_0px_40px_0px]"
+                  onClick={() => {
+                    setStarted(true);
+                  }}
+                >
+                  Start test
+                </button>
+              </>
+            )}
+            {textSplit.map((letter) => (
+              <span
+                key={letter.id}
+                className={`text-2xl ${letter.typed ? (letter.correct ? 'text-my-green-500' : 'text-my-red-500 bg-my-red-500/50') : 'text-my-neutral-400'} ${letter.id === letterNumber ? 'bg-my-neutral-400/40' : ''} ${letter.letter === ' ' ? 'px-1 mx-1' : ''}`}
+              >
+                {letter.letter}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
+      {/*      <div className="px-6 mt-10 bg-my-neutral-800 py-10 rounded-md flex flex-col gap-4 z-40">
+        <p className="text-center text-my-green-500">
+          Congratz, you passed the test!
+        </p>
+        <h2 className="text-center text-2xl font-bold">Your results</h2>
+        <div className="grid grid-cols-3 text-center mt-10">
+          <div className="flex flex-col gap-1">
+            <h3 className="">WPM:</h3>
+            <p className="font-bold">{WPM}</p>
+          </div>
+          <div className="flex flex-col gap-1">
+            <h3 className="">Accuracy:</h3>
+            <p className="font-bold">{accu}%</p>
+          </div>
+          <div className="flex flex-col gap-1">
+            <h3 className="">Time left:</h3>
+            <p className="font-bold">
+              {timer < 10 ? `0:0${timer}` : `0:${timer}`}
+            </p>
+          </div>
+        </div>
+      </div> */}
     </main>
   );
 }
