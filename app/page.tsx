@@ -10,27 +10,30 @@ import InputSelect from '@/components/Inputs/InputSelect';
 import Option from '@/components/Inputs/Option';
 import { useEffect, useRef, useState } from 'react';
 import { texts } from '@/data/texts';
+import FinalMsg from '@/components/FinalMsg';
 
 export default function Page() {
+  const [level, setLevel] = useState({ level: 'easy', number: 0 });
   const importedTexts = texts;
+  let id = 0;
+  const splitText = importedTexts[level.number].text.split('').map((letter) => {
+    return {
+      id: id++,
+      typed: false,
+      correct: false,
+      letter: letter,
+      firstTyped: false,
+      firstMistake: false,
+    };
+  });
   const [topScore, setTopScore] = useState(0);
+
   const [started, setStarted] = useState(false);
   const [game, setGame] = useState(false);
   const [timer, setTimer] = useState(60);
   const [letterNumber, setLetterNumber] = useState(0);
-  let id = 0;
-  const [textSplit, setTextSplit] = useState(
-    importedTexts[1].text.split('').map((letter) => {
-      return {
-        id: id++,
-        typed: false,
-        correct: false,
-        letter: letter,
-        firstTyped: false,
-        firstMistake: false,
-      };
-    }),
-  );
+
+  const [textSplit, setTextSplit] = useState(splitText);
 
   const gameOver =
     (started && textSplit.every((letter) => letter.typed)) || timer === 0;
@@ -41,7 +44,7 @@ export default function Page() {
     100
   ).toFixed(0);
 
-  function handleKeys(e) {
+  function handleKeys(e: React.KeyboardEvent<HTMLElement>) {
     if (e.key === 'Shift') {
       return;
     }
@@ -98,7 +101,7 @@ export default function Page() {
     }
   }
 
-  const textRef = useRef(null);
+  const textRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const startTime = Date.now() / 1000;
@@ -136,31 +139,38 @@ export default function Page() {
     }
   }, [started]);
 
+  function resetGame() {
+    setGame(false);
+    setStarted(false);
+    setTimer(60);
+    setLetterNumber(0);
+    id = 0;
+    setTextSplit(
+      importedTexts[level.number].text.split('').map((letter) => {
+        return {
+          id: id++,
+          typed: false,
+          correct: false,
+          letter: letter,
+          firstTyped: false,
+          firstMistake: false,
+        };
+      }),
+    );
+  }
+
+  function changeLevel(levelObject: { level: string; number: number }) {
+    setLevel(levelObject);
+  }
+
+  useEffect(() => {
+    resetGame();
+  }, [level]);
+
   return (
     <main className="flex-1 max-w-300 w-full mx-auto flex flex-col gap-4 px-10 relative">
       {gameOver && (
-        <div className="px-6 mt-10 bg-my-neutral-800 py-10 rounded-md flex flex-col gap-4 z-40">
-          <p className="text-center text-my-green-500">
-            Congratz, you passed the test!
-          </p>
-          <h2 className="text-center text-2xl font-bold">Your results</h2>
-          <div className="grid grid-cols-3 text-center mt-10">
-            <div className="flex flex-col gap-1">
-              <h3 className="">WPM:</h3>
-              <p className="font-bold">{WPM}</p>
-            </div>
-            <div className="flex flex-col gap-1">
-              <h3 className="">Accuracy:</h3>
-              <p className="font-bold">{accu}%</p>
-            </div>
-            <div className="flex flex-col gap-1">
-              <h3 className="">Time left:</h3>
-              <p className="font-bold">
-                {timer < 10 ? `0:0${timer}` : `0:${timer}`}
-              </p>
-            </div>
-          </div>
-        </div>
+        <FinalMsg wpm={WPM} acc={accu} timer={timer} resetGame={resetGame} />
       )}
       {!gameOver && (
         <>
@@ -199,15 +209,11 @@ export default function Page() {
               </ScoreBox>
             </Scores>
             <OptionContainer>
-              <InputSelect id="level">
-                <Option value="easy">Easy</Option>
-                <Option value="med">Medium</Option>
-                <Option value="hard">Hard</Option>
-              </InputSelect>
-              <InputSelect id="time">
-                <Option value="timed">Timed</Option>
-                <Option value="practice">Practice</Option>
-              </InputSelect>
+              <InputSelect
+                id="level"
+                changeLevel={changeLevel}
+                value={level.level}
+              />
             </OptionContainer>
           </TopContainer>
           <div className="border-b border-my-neutral-500/50 mb-2"></div>
