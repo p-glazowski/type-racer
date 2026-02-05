@@ -47,7 +47,7 @@ export const texts = [
   {
     id: 8,
     level: 'hard',
-    text: 'Ancient Egyptian hieroglyphics remained undeciphered until the discovery of the Rosetta Stone in 1799. This artifact contained the same text in three scripts: hieroglyphic, demotic, and ancient Greek. Scholars like Jean-François Champollion finally unlocked the mysteries of this writing system.',
+    text: 'Ancient Egyptian hieroglyphics remained undeciphered until the discovery of the Rosetta Stone in 1799. This artifact contained the same text in three scripts: hieroglyphic, demotic, and ancient Greek. Scholars like Jean-Francois Champollion finally unlocked the mysteries of this writing system.',
   },
   {
     id: 9,
