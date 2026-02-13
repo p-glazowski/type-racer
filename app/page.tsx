@@ -170,7 +170,7 @@ export default function Page() {
 
   return (
     <main className="flex-1 max-w-300 w-full mx-auto items-center justify-center flex md:block">
-      <div className="flex justify-center items-center flex-col h-full gap-2">
+      <div className="flex justify-center items-center flex-col h-full gap-2 md:hidden">
         <h2 className="text-2xl text-center font-bold">
           Mobile Word Racer version coming soon... 🏎️
         </h2>
