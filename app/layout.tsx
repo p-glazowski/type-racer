@@ -3,6 +3,7 @@ import { Sora } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import WPMContext from '@/Context/WPMContext';
 
 const soraSans = Sora({
   subsets: ['latin'],
@@ -25,9 +26,11 @@ export default function RootLayout({
       <body
         className={`${soraSans.className} font-sora antialiased bg-my-neutral-900 text-white flex flex-col justify-between`}
       >
-        <Header />
-        {children}
-        <Footer />
+        <WPMContext>
+          <Header />
+          {children}
+          <Footer />
+        </WPMContext>
       </body>
     </html>
   );

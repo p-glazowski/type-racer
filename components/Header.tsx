@@ -1,6 +1,11 @@
+'use client';
+
+import { useWPMContext } from '@/Context/WPMContext';
 import Image from 'next/image';
 
 export default function Header() {
+  const { globalWPM } = useWPMContext();
+
   return (
     <header className="p-4 flex flex-row justify-between items-center">
       <div>
@@ -37,7 +42,9 @@ export default function Header() {
         </div>
         <p className="text-my-neutral-400">
           Best:
-          <span className="uppercase text-white ml-1">92 wpm</span>
+          <span className="uppercase text-white ml-1">
+            {globalWPM === '' ? 0 : globalWPM} wpm
+          </span>
         </p>
       </div>
     </header>
